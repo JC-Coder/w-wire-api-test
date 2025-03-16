@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { LoginDto } from './dto/login.dto';
-import { LoginResponse } from './types/auth.types';
+import { ILoginResponse } from '../../common/types/auth.types';
 import { BaseHelper } from '../../common/utils/helper/helper.util';
 import { ERROR_CODES } from '../../common/constants/error-codes.constant';
 import { AppError } from '../../common/filter/app-error.filter';
@@ -15,7 +15,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(payload: LoginDto): Promise<LoginResponse> {
+  async login(payload: LoginDto): Promise<ILoginResponse> {
     const { username, password } = payload;
 
     // Validate credentials

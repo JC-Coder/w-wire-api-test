@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UserService } from '../../user/user.service';
 import { ENVIRONMENT_VARIABLES } from '../../../common/configs/environment';
-import { TokenPayload } from '../types/auth.types';
+import { ITokenPayload } from '../../../common/types/auth.types';
 import { ERROR_CODES } from '../../../common/constants/error-codes.constant';
 import { AppError } from '../../../common/filter/app-error.filter';
 import { HttpStatus } from '@nestjs/common';
@@ -18,7 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: TokenPayload) {
+  async validate(payload: ITokenPayload) {
     // Check if user exists
     const user = await this.userService.findById(payload.sub);
     if (!user) {

@@ -6,7 +6,7 @@ import { ERROR_CODES } from '../constants/error-codes.constant';
 // stores the request count and timestamp for each IP address
 const requestMap = new Map<string, { count: number; timestamp: number }>();
 const WINDOW_MS = 5 * 60 * 1000; // 5 minutes
-const MAX_REQUESTS_PER_WINDOW = 20;
+const MAX_REQUESTS_PER_WINDOW = 30;
 
 @Injectable()
 export class RateLimitMiddleware implements NestMiddleware {

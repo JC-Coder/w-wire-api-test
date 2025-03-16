@@ -1,4 +1,4 @@
-export interface TokenPayload {
+export interface ITokenPayload {
   sub: string;
   username: string;
   nonce: string;
@@ -6,7 +6,7 @@ export interface TokenPayload {
   exp: number;
 }
 
-export interface LoginResponse {
+export interface ILoginResponse {
   accessToken: string;
   user: {
     id: string;

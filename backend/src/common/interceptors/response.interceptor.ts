@@ -8,20 +8,20 @@ import { Reflector } from '@nestjs/core';
 import { Observable, map } from 'rxjs';
 import { ResponseMessageKey } from '../decorators/response.decorator';
 
-export interface Response<T> {
+export interface IResponse<T> {
   data: T;
 }
 
 @Injectable()
 export class ResponseTransformerInterceptor<T>
-  implements NestInterceptor<T, Response<T>>
+  implements NestInterceptor<T, IResponse<T>>
 {
   constructor(private reflector: Reflector) {}
 
   intercept(
     context: ExecutionContext,
     next: CallHandler,
-  ): Observable<Response<T>> {
+  ): Observable<IResponse<T>> {
     const response = context.switchToHttp().getResponse();
     const responseMessage =
       this.reflector.get<string>(ResponseMessageKey, context.getHandler()) ??
