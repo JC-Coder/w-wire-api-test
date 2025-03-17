@@ -7,6 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable, map } from 'rxjs';
 import { ResponseMessageKey } from '../decorators/response.decorator';
+import { Response } from 'express';
 
 export interface IResponse<T> {
   data: T;
@@ -22,7 +23,7 @@ export class ResponseTransformerInterceptor<T>
     context: ExecutionContext,
     next: CallHandler,
   ): Observable<IResponse<T>> {
-    const response = context.switchToHttp().getResponse();
+    const response: Response = context.switchToHttp().getResponse();
     const responseMessage =
       this.reflector.get<string>(ResponseMessageKey, context.getHandler()) ??
       null;
