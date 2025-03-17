@@ -7,10 +7,14 @@ import { ITokenPayload } from '../../../common/types/auth.types';
 import { ERROR_CODES } from '../../../common/constants/error-codes.constant';
 import { AppError } from '../../../common/filter/app-error.filter';
 import { HttpStatus } from '@nestjs/common';
+import { AuthService } from '../auth.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private readonly userService: UserService) {
+  constructor(
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -25,15 +29,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException();
     }
 
-    // Check if token has been used before by validating the nonce
-    const isValidNonce = await this.userService.validateNonce(
-      payload.sub,
-      payload.nonce,
-    );
-
-    if (!isValidNonce) {
+    // Validate token using the new system
+    const isValidToken = await this.authService.validateToken(payload);
+    if (!isValidToken) {
       throw new AppError(
-        'Token has been invalidated or already used',
+        'Token has been invalidated or expired',
         HttpStatus.UNAUTHORIZED,
         ERROR_CODES.INVALID_ACCESS_TOKEN,
       );

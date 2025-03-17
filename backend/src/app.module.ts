@@ -6,6 +6,7 @@ import { CurrencyModule } from './module/currency/currency.module';
 import { DatabaseModule } from './module/database/database.module';
 import { UserModule } from './module/user/user.module';
 import { SeederModule } from './module/seeder/seeder.module';
+import { TransactionsModule } from './module/transactions/transactions.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { SeederModule } from './module/seeder/seeder.module';
     AuthModule,
     CurrencyModule,
     SeederModule,
+    TransactionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

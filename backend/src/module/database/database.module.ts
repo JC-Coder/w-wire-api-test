@@ -2,6 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ENVIRONMENT_VARIABLES } from '../../common/configs/environment';
 import { User } from './entities/user.entity';
+import { Transaction } from './entities/transaction.entity';
 
 @Global()
 @Module({
@@ -13,7 +14,7 @@ import { User } from './entities/user.entity';
       synchronize: true,
       logging: false,
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Transaction]),
   ],
   exports: [TypeOrmModule],
 })

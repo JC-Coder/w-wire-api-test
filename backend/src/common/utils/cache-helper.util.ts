@@ -27,7 +27,7 @@ class CacheHelper {
 
   async setCache(
     key: string,
-    value: string | object,
+    value: string | number | object | boolean,
     expiry?: number,
   ): Promise<void> {
     try {

@@ -69,39 +69,4 @@ export class UserService {
 
     return user;
   }
-
-  async storeNonce(userId: string, nonce: string): Promise<void> {
-    const user = await this.findById(userId);
-    if (!user) return;
-
-    // Initialize usedNonces if it doesn't exist
-    if (!user.usedNonces) {
-      user.usedNonces = [];
-    }
-
-    // Add the nonce to the user's used nonces
-    user.usedNonces.push(nonce);
-
-    // Keep only the last 50 nonces to prevent unlimited growth
-    if (user.usedNonces.length > 50) {
-      user.usedNonces = user.usedNonces.slice(-50);
-    }
-
-    await this.userRepository.save(user);
-  }
-
-  async validateNonce(userId: string, nonce: string): Promise<boolean> {
-    const user = await this.findById(userId);
-    if (!user) return false;
-
-    // If usedNonces doesn't exist or this nonce is not in the array, it's valid
-    if (!user.usedNonces || !user.usedNonces.includes(nonce)) {
-      // Store the nonce as used
-      await this.storeNonce(userId, nonce);
-      return true;
-    }
-
-    // Nonce has been used before
-    return false;
-  }
 }

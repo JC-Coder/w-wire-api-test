@@ -14,4 +14,8 @@ export const CACHE_EXPIRY = {
 
 export const CACHE_KEYS = {
   EXCHANGE_RATES: 'exchangeRates',
+  TOKEN_BLACKLIST: (userId: string, nonce: string) =>
+    `tokenBlacklist:${userId}:${nonce}`,
+  NONCE_TRACKING: (userId: string, nonce: string) =>
+    `nonceTracking:${userId}:${nonce}`,
 };

@@ -9,9 +9,6 @@ export class User extends BaseEntity {
   @Column({ nullable: false })
   password: string;
 
-  @Column('simple-array', { nullable: true })
-  usedNonces: string[];
-
   @Column({ default: 0 })
   failedLoginAttempts: number;
 

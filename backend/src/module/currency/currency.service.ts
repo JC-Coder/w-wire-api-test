@@ -10,11 +10,21 @@ import {
   CACHE_EXPIRY,
   CACHE_KEYS,
 } from '../../common/constants/cache.constant';
+import { ConvertCurrencyDto } from './dto/convert-currency.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Transaction } from '../database/entities/transaction.entity';
+import { User } from '../database/entities/user.entity';
 
 @Injectable()
 export class CurrencyService {
   private readonly APP_ID = ENVIRONMENT_VARIABLES.OPEN_EXCHANGE_APP_ID;
   private readonly API_BASE_URL = ENVIRONMENT_VARIABLES.OPEN_EXCHANGE_BASE_URL;
+
+  constructor(
+    @InjectRepository(Transaction)
+    private readonly transactionRepository: Repository<Transaction>,
+  ) {}
 
   async getCurrentExchangeRates(): Promise<IExchangeRateResponse> {
     const cachedData = await CacheHelperUtil.getCache(
@@ -54,5 +64,44 @@ export class CurrencyService {
     );
 
     return finalRes;
+  }
+
+  async convertCurrency(
+    payload: ConvertCurrencyDto,
+    user: User,
+  ): Promise<{ amount: number; rate: number; result: number }> {
+    const { fromCurrency, toCurrency, amount } = payload;
+
+    const rates = await this.getCurrentExchangeRates();
+
+    if (!rates.rates[fromCurrency] || !rates.rates[toCurrency]) {
+      throw new BadRequestException('Invalid currency code');
+    }
+
+    // Convert to USD first (base currency) if not USD
+    const amountInUsd =
+      fromCurrency === 'USD' ? amount : amount / rates.rates[fromCurrency];
+
+    // Convert from USD to target currency
+    const rate = rates.rates[toCurrency];
+    const result = amountInUsd * rate;
+
+    // Store the transaction
+    await this.transactionRepository.save(
+      this.transactionRepository.create({
+        user,
+        amount,
+        fromCurrency: fromCurrency,
+        toCurrency: toCurrency,
+        rate,
+        result,
+      }),
+    );
+
+    return {
+      amount,
+      rate,
+      result,
+    };
   }
 }
