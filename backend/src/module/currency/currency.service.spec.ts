@@ -15,6 +15,9 @@ jest.mock('../../common/utils/cache-helper.util', () => ({
 
 // Import the mocked module after mocking it
 import { CacheHelperUtil } from '../../common/utils/cache-helper.util';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { User } from '../database/entities/user.entity';
+import { Transaction } from '../database/entities/transaction.entity';
 
 // Mock axios
 jest.mock('axios');
@@ -24,14 +27,24 @@ const mockedCache = CacheHelperUtil as jest.Mocked<typeof CacheHelperUtil>;
 describe('CurrencyService', () => {
   let service: CurrencyService;
 
+  const mockTransactionRepository = {
+    create: jest.fn(),
+    save: jest.fn(),
+    find: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CurrencyService],
+      providers: [
+        CurrencyService,
+        {
+          provide: getRepositoryToken(Transaction),
+          useValue: mockTransactionRepository,
+        },
+      ],
     }).compile();
 
     service = module.get<CurrencyService>(CurrencyService);
-
-    // Reset all mocks
     jest.clearAllMocks();
   });
 
@@ -49,6 +62,7 @@ describe('CurrencyService', () => {
         EUR: 0.91,
         GBP: 0.76,
         JPY: 120.31,
+        USD: 1,
       },
     };
 
@@ -119,6 +133,182 @@ describe('CurrencyService', () => {
         'Network error',
       );
       expect(mockedCache.setCache).not.toHaveBeenCalled();
+    });
+
+    it('should handle empty response data', async () => {
+      mockedCache.getCache.mockResolvedValueOnce(null);
+      mockedAxios.get.mockResolvedValueOnce({
+        status: 200,
+        data: null,
+      });
+
+      await expect(service.getCurrentExchangeRates()).rejects.toThrow(
+        'Unable to retrieve exchanges rate, try again later',
+      );
+      expect(mockedCache.setCache).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('convertCurrency', () => {
+    const mockUser = { id: '1', username: 'testuser' } as User;
+    const mockRates = {
+      timestamp: 1647907200,
+      base: 'USD',
+      rates: {
+        EUR: 0.91,
+        GBP: 0.76,
+        JPY: 120.31,
+        USD: 1,
+      },
+    };
+
+    beforeEach(() => {
+      jest
+        .spyOn(service, 'getCurrentExchangeRates')
+        .mockResolvedValue(mockRates);
+    });
+
+    it('should convert USD to EUR correctly', async () => {
+      const payload = {
+        amount: 100,
+        fromCurrency: 'USD',
+        toCurrency: 'EUR',
+      };
+
+      mockTransactionRepository.create.mockReturnValue({
+        user: mockUser,
+        ...payload,
+        rate: mockRates.rates.EUR,
+        result: payload.amount * mockRates.rates.EUR,
+      });
+
+      const result = await service.convertCurrency(payload, mockUser);
+
+      expect(result).toEqual({
+        amount: 100,
+        rate: 0.91,
+        result: 91,
+      });
+
+      expect(mockTransactionRepository.save).toHaveBeenCalledWith({
+        user: mockUser,
+        amount: 100,
+        fromCurrency: 'USD',
+        toCurrency: 'EUR',
+        rate: 0.91,
+        result: 91,
+      });
+    });
+
+    it('should convert EUR to USD correctly', async () => {
+      const payload = {
+        amount: 100,
+        fromCurrency: 'EUR',
+        toCurrency: 'USD',
+      };
+
+      const expectedRate = mockRates.rates.USD;
+      const expectedResult =
+        (payload.amount / mockRates.rates.EUR) * expectedRate;
+
+      mockTransactionRepository.create.mockReturnValue({
+        user: mockUser,
+        ...payload,
+        rate: expectedRate,
+        result: expectedResult,
+      });
+
+      const result = await service.convertCurrency(payload, mockUser);
+
+      expect(result).toEqual({
+        amount: 100,
+        rate: expectedRate,
+        result: expectedResult,
+      });
+
+      expect(mockTransactionRepository.save).toHaveBeenCalledWith({
+        user: mockUser,
+        ...payload,
+        rate: expectedRate,
+        result: expectedResult,
+      });
+    });
+
+    it('should convert between non-USD currencies correctly', async () => {
+      const payload = {
+        amount: 100,
+        fromCurrency: 'EUR',
+        toCurrency: 'GBP',
+      };
+
+      // Convert EUR to USD first, then USD to GBP
+      const amountInUsd = payload.amount / mockRates.rates.EUR;
+      const expectedRate = mockRates.rates.GBP;
+      const expectedResult = amountInUsd * expectedRate;
+
+      mockTransactionRepository.create.mockReturnValue({
+        user: mockUser,
+        ...payload,
+        rate: expectedRate,
+        result: expectedResult,
+      });
+
+      const result = await service.convertCurrency(payload, mockUser);
+
+      expect(result).toEqual({
+        amount: 100,
+        rate: expectedRate,
+        result: expectedResult,
+      });
+    });
+
+    it('should handle invalid source currency', async () => {
+      const payload = {
+        amount: 100,
+        fromCurrency: 'INVALID',
+        toCurrency: 'EUR',
+      };
+
+      await expect(service.convertCurrency(payload, mockUser)).rejects.toThrow(
+        'Invalid currency code',
+      );
+      expect(mockTransactionRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('should handle invalid target currency', async () => {
+      const payload = {
+        amount: 100,
+        fromCurrency: 'USD',
+        toCurrency: 'INVALID',
+      };
+
+      await expect(service.convertCurrency(payload, mockUser)).rejects.toThrow(
+        'Invalid currency code',
+      );
+      expect(mockTransactionRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('should handle zero amount conversion', async () => {
+      const payload = {
+        amount: 0,
+        fromCurrency: 'USD',
+        toCurrency: 'EUR',
+      };
+
+      mockTransactionRepository.create.mockReturnValue({
+        user: mockUser,
+        ...payload,
+        rate: mockRates.rates.EUR,
+        result: 0,
+      });
+
+      const result = await service.convertCurrency(payload, mockUser);
+
+      expect(result).toEqual({
+        amount: 0,
+        rate: mockRates.rates.EUR,
+        result: 0,
+      });
     });
   });
 });
