@@ -6,8 +6,8 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { ERROR_CODES } from 'src/common/constants/error-codes.constant';
-import { AppError } from 'src/common/filter/app-error.filter';
+import { AppError } from '../../common/filter/app-error.filter';
+import { ERROR_CODES } from '../constants/error-codes.constant';
 
 interface IResponseMsg {
   statusCode: number;
