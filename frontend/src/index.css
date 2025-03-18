@@ -1,3 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Keep your existing custom styles below */
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -64,5 +70,23 @@ button:focus-visible {
   }
   button {
     background-color: #f9f9f9;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Add responsive adjustments */
+@media (max-width: 640px) {
+  .login-card {
+    padding: 2rem !important;
+    margin: 1rem !important;
+  }
+
+  h1 {
+    font-size: 2rem !important;
   }
 }

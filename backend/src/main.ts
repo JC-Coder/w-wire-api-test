@@ -14,13 +14,18 @@ import { ValidationPipe } from '@nestjs/common';
 const serverPort = ENVIRONMENT_VARIABLES.APP_PORT;
 
 async function bootstrap() {
-  // for purpose of this test, we allow all origins
-  const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001'];
+  // Correct way to define allowed origins
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://localhost:3001',
+  ];
 
   const app = await NestFactory.create(AppModule, {
     cors: {
       origin: allowedOrigins,
       credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     },
   });
 
