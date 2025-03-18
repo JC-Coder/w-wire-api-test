@@ -2,6 +2,13 @@
 
 A full-stack currency conversion platform built with NestJS and React, featuring secure authentication, real-time currency conversion, and comprehensive transaction tracking.
 
+## Demo
+
+<video width="100%" controls>
+  <source src="assets/client-demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
 ## Project Overview
 
 We Wire is a modern currency conversion platform that allows users to:
@@ -10,6 +17,20 @@ We Wire is a modern currency conversion platform that allows users to:
 - Track conversion history
 - Access real-time exchange rates
 - Manage their transactions through a user-friendly dashboard
+
+## Architecture
+
+### System Flow
+
+![System Flow Chart](assets/flow-chart.png)
+
+### Data Model
+
+![Entity Relationship Diagram](assets/erd.png)
+
+### Request Flow
+
+![Sequence Diagram](assets/sequence-diagram.png)
 
 ## Project Structure
 
