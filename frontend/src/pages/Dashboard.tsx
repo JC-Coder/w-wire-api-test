@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useGetTransactionsQuery } from "../store/api/currencyApi";
+import { logout } from "../utils/auth";
 import CurrencyConverter from "../components/CurrencyConverter";
 
 
 const Dashboard = () => {
-  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const limit = 10;
 
@@ -13,9 +12,7 @@ const Dashboard = () => {
     useGetTransactionsQuery({ page, limit });
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
+    logout();
   };
 
   const formatDate = (dateString: string) => {
