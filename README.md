@@ -110,6 +110,29 @@ This project is organized into two main directories:
 - PostgreSQL
 - npm (preferred) or npm
 
+### Environment Variables
+
+#### Backend (.env.example)
+
+```properties
+APP_NAME="Backend Api Test"
+APP_PORT=3000
+APP_ENV=development
+APP_ENCRYPTION_KEY=your_encryption_key
+DB_URL=postgresql://username:password@localhost:5432/database_name
+TEST_DB_URL=postgresql://username:password@localhost:5432/test_database_name
+JWT_SECRET=your_jwt_secret_key
+OPEN_EXCHANGE_APP_ID=your_open_exchange_rate_api_key
+REDIS_DB_URL=redis://localhost:6379
+```
+
+#### Frontend (.env.example)
+
+```properties
+VITE_API_URL=http://localhost:3000/api
+VITE_APP_NAME="We Wire"
+```
+
 ### Backend Setup
 
 1. Navigate to the backend directory:
