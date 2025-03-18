@@ -9,6 +9,8 @@ A full-stack currency conversion platform built with NestJS and React, featuring
   Your browser does not support the video tag.
 </video>
 
+Demo video not loaded ? [Watch Video Here](https://pub-bac1839243454103b0992ac4d61bd168.r2.dev/2025-03-18%2006-24-10.mp4)
+
 ## Project Overview
 
 We Wire is a modern currency conversion platform that allows users to:
@@ -106,7 +108,7 @@ This project is organized into two main directories:
 
 - Node.js (v16 or higher)
 - PostgreSQL
-- pnpm (preferred) or npm
+- npm (preferred) or npm
 
 ### Backend Setup
 
@@ -116,16 +118,16 @@ This project is organized into two main directories:
    ```
 2. Install dependencies:
    ```bash
-   pnpm install
+   npm install
    ```
 3. Create a .env file with necessary environment variables (see .env.example)
 4. Run database migrations:
    ```bash
-   pnpm run migration:run
+   npm run migration:run
    ```
 5. Start the development server:
    ```bash
-   pnpm run start:dev
+   npm run start:dev
    ```
 
 ### Frontend Setup
@@ -136,11 +138,11 @@ This project is organized into two main directories:
    ```
 2. Install dependencies:
    ```bash
-   pnpm install
+   npm install
    ```
 3. Start the development server:
    ```bash
-   pnpm run dev
+   npm run dev
    ```
 
 ## Security Features
@@ -159,9 +161,9 @@ This project is organized into two main directories:
 
 ```bash
 cd backend
-pnpm run test        # Unit tests
-pnpm run test:e2e    # E2E tests
-pnpm run test:cov    # Test coverage
+npm run test        # Unit tests
+npm run test:e2e    # E2E tests
+npm run test:cov    # Test coverage
 ```
 
 ## API Documentation
