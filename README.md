@@ -5,7 +5,7 @@ A full-stack currency conversion platform built with NestJS and React, featuring
 ## Demo
 
 <video width="100%" controls>
-  <source src="assets/client-demo.mp4" type="video/mp4">
+  <source src="https://pub-bac1839243454103b0992ac4d61bd168.r2.dev/2025-03-18%2006-24-10.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 
