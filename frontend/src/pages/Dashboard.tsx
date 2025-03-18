@@ -1,69 +1,16 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useGetTransactionsQuery } from "../store/api/currencyApi";
 import CurrencyConverter from "../components/CurrencyConverter";
 
-interface Transaction {
-  id: string;
-  amount: number;
-  fromCurrency: string;
-  toCurrency: string;
-  rate: number;
-  result: number;
-  createdAt: string;
-}
-
-interface PaginationMeta {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
 
 const Dashboard = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [meta, setMeta] = useState<PaginationMeta>({
-    total: 0,
-    page: 1,
-    limit: 10,
-    totalPages: 1,
-  });
   const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-  const fetchTransactions = useCallback(async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
-      const response = await axios.get(
-        `http://localhost:3000/api/user/transactions?page=${meta.page}&limit=${meta.limit}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.data.success) {
-        setTransactions(response.data.data.data);
-        setMeta(response.data.data.meta);
-      }
-    } catch (err) {
-      console.error('Error fetching transactions:', err);
-      setError("Failed to fetch transactions");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [meta.page, meta.limit, navigate]);
-
-  useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
+  const { data: transactionsData, isLoading, error: fetchError, refetch } = 
+    useGetTransactionsQuery({ page, limit });
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -138,9 +85,9 @@ const Dashboard = () => {
           </button>
         </div>
 
-        <CurrencyConverter onConversionSuccess={fetchTransactions} />
+        <CurrencyConverter onConversionSuccess={() => refetch()} />
 
-        {error && (
+        {fetchError && (
           <div
             style={{
               background: "rgba(255, 87, 87, 0.1)",
@@ -151,7 +98,7 @@ const Dashboard = () => {
               border: "1px solid rgba(255, 87, 87, 0.2)",
             }}
           >
-            {error}
+            {fetchError as string}
           </div>
         )}
 
@@ -196,7 +143,7 @@ const Dashboard = () => {
                 }}
               />
             </div>
-          ) : transactions.length === 0 ? (
+          ) : transactionsData?.data?.data.length === 0 ? (
             <div
               style={{
                 textAlign: "center",
@@ -284,7 +231,7 @@ const Dashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.map((transaction) => (
+                  {transactionsData?.data?.data.map((transaction) => (
                     <tr
                       key={transaction.id}
                       style={{
@@ -353,30 +300,29 @@ const Dashboard = () => {
                   marginTop: "1.5rem",
                 }}
               >
-                {Array.from({ length: meta.totalPages }, (_, i) => i + 1).map(
-                  (page) => (
-                    <button
-                      key={page}
-                      onClick={() =>
-                        setMeta((prev) => ({ ...prev, page }))
-                      }
-                      style={{
-                        padding: "0.5rem 1rem",
-                        background:
-                          meta.page === page
-                            ? "rgba(97, 218, 251, 0.1)"
-                            : "transparent",
-                        border: "1px solid rgba(97, 218, 251, 0.2)",
-                        borderRadius: "6px",
-                        color: meta.page === page ? "#61dafb" : "#8b8d91",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      {page}
-                    </button>
-                  )
-                )}
+                {Array.from(
+                  { length: transactionsData?.data?.meta?.totalPages || 0 },
+                  (_, i) => i + 1
+                ).map((pageNum) => (
+                  <button
+                    key={pageNum}
+                    onClick={() => setPage(pageNum)}
+                    style={{
+                      padding: "0.5rem 1rem",
+                      background:
+                        page === pageNum
+                          ? "rgba(97, 218, 251, 0.1)"
+                          : "transparent",
+                      border: "1px solid rgba(97, 218, 251, 0.2)",
+                      borderRadius: "6px",
+                      color: page === pageNum ? "#61dafb" : "#8b8d91",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
               </div>
             </>
           )}

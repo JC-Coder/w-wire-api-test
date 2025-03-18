@@ -1,81 +1,37 @@
-import { useEffect, useState } from "react";
-import axios, { AxiosError } from "axios";
-
-interface ExchangeRates {
-  base: string;
-  rates: Record<string, number>;
-  timestamp: number;
-}
+import { useState } from "react";
+import { useGetExchangeRatesQuery, useConvertCurrencyMutation } from "../store/api/currencyApi";
 
 interface CurrencyConverterProps {
   onConversionSuccess: () => void;
-}
-
-interface ErrorResponse {
-  message: string;
-  success: boolean;
 }
 
 const CurrencyConverter = ({ onConversionSuccess }: CurrencyConverterProps) => {
   const [amount, setAmount] = useState<string>("");
   const [fromCurrency, setFromCurrency] = useState<string>("USD");
   const [toCurrency, setToCurrency] = useState<string>("EUR");
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
-  const [currencies, setCurrencies] = useState<string[]>([]);
 
-  useEffect(() => {
-    fetchExchangeRates();
-  }, []);
+  const { data: exchangeRatesData, isLoading: isLoadingRates } = useGetExchangeRatesQuery();
+  const [convertCurrency, { isLoading: isConverting }] = useConvertCurrencyMutation();
 
-  const fetchExchangeRates = async () => {
-    try {
-      const response = await axios.get("http://localhost:3000/api/exchange-rates");
-      if (response.data.success) {
-        const data: ExchangeRates = response.data.data;
-        setCurrencies(Object.keys(data.rates));
-      }
-    } catch (err) {
-      const error = err as AxiosError<ErrorResponse>;
-      setError(
-        error.response?.data?.message || "Failed to fetch exchange rates"
-      );
-    }
-  };
+  const currencies = exchangeRatesData?.data?.rates ? Object.keys(exchangeRatesData.data.rates) : [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setIsLoading(true);
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-        "http://localhost:3000/api/convert",
-        {
-          amount: parseFloat(amount),
-          fromCurrency,
-          toCurrency,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.data.success) {
-        setAmount("");
-        onConversionSuccess();
-      }
+      await convertCurrency({
+        amount: parseFloat(amount),
+        fromCurrency,
+        toCurrency,
+      }).unwrap();
+      
+      setAmount("");
+      onConversionSuccess();
     } catch (err) {
-      const error = err as AxiosError<ErrorResponse>;
-      setError(
-        error.response?.data?.message || "Conversion failed. Please try again."
-      );
-    } finally {
-      setIsLoading(false);
+        console.error('Conversion error:', err);
+      setError("Conversion failed. Please try again.");
     }
   };
 
@@ -223,7 +179,7 @@ const CurrencyConverter = ({ onConversionSuccess }: CurrencyConverterProps) => {
 
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isConverting || isLoadingRates}
           style={{
             width: "100%",
             padding: "1rem",
@@ -233,12 +189,12 @@ const CurrencyConverter = ({ onConversionSuccess }: CurrencyConverterProps) => {
             borderRadius: "8px",
             fontSize: "1rem",
             fontWeight: "600",
-            cursor: isLoading ? "not-allowed" : "pointer",
-            opacity: isLoading ? 0.7 : 1,
+            cursor: (isConverting || isLoadingRates) ? "not-allowed" : "pointer",
+            opacity: (isConverting || isLoadingRates) ? 0.7 : 1,
             transition: "all 0.2s ease",
           }}
         >
-          {isLoading ? "Converting..." : "Convert"}
+          {isConverting ? "Converting..." : "Convert"}
         </button>
       </form>
     </div>

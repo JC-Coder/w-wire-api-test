@@ -1,49 +1,29 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useLoginMutation } from "../store/api/authApi";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  const [login, { isLoading }] = useLoginMutation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/auth/login",
-        {
-          username,
-          password,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.data.data) {
-        // Store the token in localStorage with the correct response structure
-        localStorage.setItem("token", response.data.data.accessToken);
-        localStorage.setItem("user", JSON.stringify(response.data.data.user));
-
-        // Redirect to dashboard
-        navigate("/dashboard");
-      }
+      const response = await login({ username, password }).unwrap();
+      localStorage.setItem("token", response.data.accessToken);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      navigate("/dashboard");
     } catch (err) {
       console.error('Login error:', err);
       setError(
         "Login failed. Please try again."
       );
-    } finally {
-      setIsLoading(false);
     }
   };
 
